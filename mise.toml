@@ -1,0 +1,38 @@
+[tools]
+go = "latest"
+golangci-lint = "latest"
+neovim = "latest"
+
+[tasks.build]
+description = "Build the CLI"
+run = "go build . -o ./dist/adapt"
+
+[tasks.fmt]
+description = "Format code"
+run = "gofmt -s -w ."
+
+[tasks."fmt:check"]
+description = "Check code formatting"
+run = "gofmt -s -l ."
+
+[tasks.test]
+description = "Run tests"
+run = 'go test {{arg(name="path", var=true, default="./...")}}'
+
+[tasks.test-e2e]
+description = "Run tests end-to-end"
+run = [
+    "docker buildx build --platform=linux/amd64 -t test -f ./test_data/Dockerfile .",
+    "docker run --platform=linux/amd64 test",
+]
+
+
+[tasks.lint]
+description = "Run linters"
+run = "golangci-lint run"
+
+[tasks.clean]
+description = "Remove any generated files, data, and containers"
+run = [
+  "rm -rf ./dist",
+]
