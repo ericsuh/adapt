@@ -21,7 +21,7 @@ run = 'go test {{arg(name="path", var=true, default="./...")}}'
 [tasks.test-e2e]
 description = "Run tests end-to-end"
 run = [
-    "docker buildx build --platform=linux/amd64 -t test -f ./test_data/Dockerfile .",
+    "docker buildx build --platform=linux/amd64 --tag test --load --file ./test_data/Dockerfile .",
     "docker run --platform=linux/amd64 test",
 ]
 

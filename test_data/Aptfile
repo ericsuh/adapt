@@ -12,14 +12,13 @@ ppa "fish-shell/release-4"
 # Install .deb files from URL
 deb "https://github.com/wagoodman/dive/releases/download/v0.13.1/dive_0.13.1_linux_amd64.deb"
 
-# Add repositories with GPG keys
-repo "https://deb.nodesource.com/node_22.x" "nodistro" "main", signed-by: "https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key"
+# Repository with architecture specification
+repo "https://download.docker.com/linux/ubuntu" "noble" "stable", signed-by: "https://download.docker.com/linux/ubuntu/gpg", arch: "amd64"
+
+package docker-ce
 
 # Add source repositories
-repo-src "http://archive.ubuntu.com/ubuntu" "jammy" "main"
-
-# Repository with architecture specification
-repo "https://download.docker.com/linux/ubuntu" "jammy" "stable", signed-by: "https://download.docker.com/linux/ubuntu/gpg", arch: "amd64"
+repo-src "http://archive.ubuntu.com/ubuntu" "noble" "main"
 
 pin "nsight-compute" -1, origin: "*ubuntu.com*"
 pin "nsight-systems" -1, origin: "*ubuntu.com*"
