@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          filter: blob:none
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
+      - uses: jdx/mise-action@v2
+        with:
+          version: 2025.10.3
+      - name: Install dependencies
+        run: mise install
+      - name: Run unit tests
+        run: mise run test
+      - name: Run lint
+        run: mise run lint
+      - name: Run fmt:check
+        run: mise run fmt:check
+      - uses: docker/setup-buildx-action@v3
+      - name: Run end-to-end tests
+        run: mise run test-e2e

@@ -1,3 +1,5 @@
 adapt
 .gocache/
 .claude/settings.local.json
+# Added by goreleaser init:
+dist/

@@ -1,7 +1,6 @@
 [tools]
 go = "latest"
 golangci-lint = "latest"
-neovim = "latest"
 
 [tasks.build]
 description = "Build the CLI"
