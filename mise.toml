@@ -1,6 +1,6 @@
 [tools]
 go = "latest"
-golangci-lint = "latest"
+golangci-lint = "2.5"
 
 [tasks.build]
 description = "Build the CLI"
