@@ -165,7 +165,7 @@ func addPPA(ppa string, dryRun bool) error {
 			ensuredAddAptRepository = true
 		} else {
 			fmt.Println("Installing required utility add-apt-repository (package software-properties-common)")
-			err := installPackages([]aptfile.PackageDirective{aptfile.PackageDirective{Name: "software-properties-common"}}, dryRun)
+			err := installPackages([]aptfile.PackageDirective{{Name: "software-properties-common"}}, dryRun)
 			if err != nil {
 				return err
 			}
