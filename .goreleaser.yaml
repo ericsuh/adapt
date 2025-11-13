@@ -14,13 +14,21 @@ before:
     - go mod tidy
 
 builds:
-  - env:
+  - id: adapt
+    main: ./main.go
+    binary: adapt
+    env:
       - CGO_ENABLED=0
     goos:
       - linux
     goarch:
       - amd64
       - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
 
 archives:
   - formats: [tar.gz]
@@ -42,3 +50,21 @@ changelog:
       - "^test:"
 
 release:
+  github:
+    owner: ericsuh
+    name: adapt
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## Release {{.Version}}
+
+    Download the appropriate archive for your system below.
+  
+  footer: |
+    ## Installation
+
+    1. Download the archive for your system
+    2. Extract: `tar -xzf adapt_{{.Version}}_linux_*.tar.gz`
+    3. Move to PATH: `sudo mv adapt /usr/local/bin/`
+    4. Make executable: `sudo chmod +x /usr/local/bin/adapt`
