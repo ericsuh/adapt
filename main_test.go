@@ -133,4 +133,3 @@ func TestDownloadGPGKeyHandlesAsciiArmored(t *testing.T) {
 		t.Errorf("Downloaded key doesn't match expected binary")
 	}
 }
-

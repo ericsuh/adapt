@@ -85,10 +85,9 @@ func TestParseBinaryDataDoesNotPrintJunk(t *testing.T) {
 
 	_, err = Parse(bytes.NewReader(binaryData))
 	require.Error(t, err)
-	
+
 	// Check that the error message doesn't contain binary junk
 	// The error should be a clean message
 	require.Contains(t, err.Error(), "no header line found")
 	require.NotContains(t, err.Error(), string(binaryData[:10]))
 }
-

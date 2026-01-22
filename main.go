@@ -324,13 +324,13 @@ func downloadGPGKey(url, destPath string) error {
 			log.Printf("Error closing response body: %v", err2)
 		}
 	}()
-	
+
 	// Read the entire body first so we can check if it's binary or ASCII-armored
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
-	
+
 	// Try to parse as ASCII-armored format
 	dearm, err := armor.Parse(bytes.NewReader(bodyBytes))
 	if err != nil {
