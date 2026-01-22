@@ -17,6 +17,13 @@ import (
 	"strings"
 )
 
+const (
+	// GPG packet tag for Public-Key Encrypted Session Key Packet (old format)
+	gpgPacketTagOldFormat = 0x95
+	// GPG packet tag for Public-Key Encrypted Session Key Packet (new format)
+	gpgPacketTagNewFormat = 0x99
+)
+
 var ensuredAddAptRepository bool = false
 var needsUpdate bool = true
 
@@ -335,9 +342,10 @@ func downloadGPGKey(url, destPath string) error {
 	dearm, err := armor.Parse(bytes.NewReader(bodyBytes))
 	if err != nil {
 		// If parsing fails, check if it's already in binary format
-		// GPG binary files start with specific byte sequences
-		if len(bodyBytes) > 0 && (bodyBytes[0] == 0x99 || bodyBytes[0] == 0x95) {
+		// GPG binary files start with packet tags 0x95 (old format) or 0x99 (new format)
+		if len(bodyBytes) > 0 && (bodyBytes[0] == gpgPacketTagOldFormat || bodyBytes[0] == gpgPacketTagNewFormat) {
 			// Appears to be binary GPG format, use it directly
+			// Note: 0644 permissions are appropriate for public keys in /usr/share/keyrings/
 			err = os.WriteFile(destPath, bodyBytes, 0644)
 			return err
 		}
