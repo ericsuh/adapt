@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"github.com/ericsuh/adapt/aptfile"
 	"github.com/ericsuh/adapt/armor"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -13,6 +15,13 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+)
+
+const (
+	// GPG packet tag for Public-Key Encrypted Session Key Packet (old format)
+	gpgPacketTagOldFormat = 0x95
+	// GPG packet tag for Public-Key Encrypted Session Key Packet (new format)
+	gpgPacketTagNewFormat = 0x99
 )
 
 var ensuredAddAptRepository bool = false
@@ -322,9 +331,26 @@ func downloadGPGKey(url, destPath string) error {
 			log.Printf("Error closing response body: %v", err2)
 		}
 	}()
-	dearm, err := armor.Parse(resp.Body)
+
+	// Read the entire body first so we can check if it's binary or ASCII-armored
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
+	}
+
+	// Try to parse as ASCII-armored format
+	dearm, err := armor.Parse(bytes.NewReader(bodyBytes))
+	if err != nil {
+		// If parsing fails, check if it's already in binary format
+		// GPG binary files start with packet tags 0x95 (old format) or 0x99 (new format)
+		if len(bodyBytes) > 0 && (bodyBytes[0] == gpgPacketTagOldFormat || bodyBytes[0] == gpgPacketTagNewFormat) {
+			// Appears to be binary GPG format, use it directly
+			// Note: 0644 permissions are appropriate for public keys in /usr/share/keyrings/
+			err = os.WriteFile(destPath, bodyBytes, 0644)
+			return err
+		}
+		// Not ASCII-armored and not recognized binary format
+		return fmt.Errorf("failed to parse GPG key: %w", err)
 	}
 	err = os.WriteFile(destPath, dearm, 0644)
 	return err
