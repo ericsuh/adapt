@@ -49,7 +49,8 @@ scanning:
 			} else if line == "" {
 				continue
 			} else {
-				err = fmt.Errorf("no header line found. Found '%v'", line)
+				// Don't include the line content in error to avoid printing binary junk
+				err = fmt.Errorf("no header line found")
 				return
 			}
 		case ARMOR_PARSER_STATE_HEADER:
@@ -59,7 +60,8 @@ scanning:
 				state = ARMOR_PARSER_STATE_BODY
 				continue
 			} else {
-				err = fmt.Errorf("no end of header line. Found '%v'", line)
+				// Don't include the line content in error to avoid printing binary junk
+				err = fmt.Errorf("no end of header line")
 				return
 			}
 		case ARMOR_PARSER_STATE_BODY:

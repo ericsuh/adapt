@@ -77,3 +77,18 @@ func TestBodyDecode(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, expected, actual)
 }
+
+func TestParseBinaryDataDoesNotPrintJunk(t *testing.T) {
+	// Test that binary data doesn't get included in error messages
+	binaryData, err := os.ReadFile("../test_data/key.gpg")
+	require.NoError(t, err)
+
+	_, err = Parse(bytes.NewReader(binaryData))
+	require.Error(t, err)
+	
+	// Check that the error message doesn't contain binary junk
+	// The error should be a clean message
+	require.Contains(t, err.Error(), "no header line found")
+	require.NotContains(t, err.Error(), string(binaryData[:10]))
+}
+

@@ -1,6 +1,12 @@
 package main
 
 import (
+	"bytes"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -51,3 +57,80 @@ func TestSanitizeFilename(t *testing.T) {
 		})
 	}
 }
+
+func TestDownloadGPGKeyHandlesBinary(t *testing.T) {
+	// Read the binary GPG key from test data
+	binaryKey, err := os.ReadFile("test_data/key.gpg")
+	if err != nil {
+		t.Fatalf("Failed to read test key: %v", err)
+	}
+
+	// Create a test HTTP server that returns binary GPG key
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/octet-stream")
+		_, _ = io.Copy(w, bytes.NewReader(binaryKey))
+	}))
+	defer ts.Close()
+
+	// Create a temp file for destination
+	tempDir := t.TempDir()
+	destPath := filepath.Join(tempDir, "test.gpg")
+
+	// Download the key
+	err = downloadGPGKey(ts.URL, destPath)
+	if err != nil {
+		t.Fatalf("downloadGPGKey failed: %v", err)
+	}
+
+	// Verify the downloaded file matches the original
+	downloaded, err := os.ReadFile(destPath)
+	if err != nil {
+		t.Fatalf("Failed to read downloaded file: %v", err)
+	}
+
+	if !bytes.Equal(downloaded, binaryKey) {
+		t.Errorf("Downloaded key doesn't match original")
+	}
+}
+
+func TestDownloadGPGKeyHandlesAsciiArmored(t *testing.T) {
+	// Read the ASCII-armored GPG key from test data
+	armoredKey, err := os.ReadFile("test_data/key.gpg.asc")
+	if err != nil {
+		t.Fatalf("Failed to read test key: %v", err)
+	}
+
+	// Read expected binary output
+	expectedBinary, err := os.ReadFile("test_data/key.gpg")
+	if err != nil {
+		t.Fatalf("Failed to read expected binary: %v", err)
+	}
+
+	// Create a test HTTP server that returns ASCII-armored GPG key
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		_, _ = io.Copy(w, bytes.NewReader(armoredKey))
+	}))
+	defer ts.Close()
+
+	// Create a temp file for destination
+	tempDir := t.TempDir()
+	destPath := filepath.Join(tempDir, "test.gpg")
+
+	// Download the key
+	err = downloadGPGKey(ts.URL, destPath)
+	if err != nil {
+		t.Fatalf("downloadGPGKey failed: %v", err)
+	}
+
+	// Verify the downloaded file matches the expected binary
+	downloaded, err := os.ReadFile(destPath)
+	if err != nil {
+		t.Fatalf("Failed to read downloaded file: %v", err)
+	}
+
+	if !bytes.Equal(downloaded, expectedBinary) {
+		t.Errorf("Downloaded key doesn't match expected binary")
+	}
+}
+
