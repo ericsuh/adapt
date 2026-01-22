@@ -55,7 +55,7 @@ release:
     name: adapt
   draft: false
   prerelease: auto
-  mode: replace
+  mode: append
   header: |
     ## Release {{.Version}}
 
