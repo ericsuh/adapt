@@ -38,4 +38,4 @@ jobs:
       - name: Run GoReleaser build
         uses: goreleaser/goreleaser-action@v6
         with:
-          args: build --snapshot --skip-publish --rm-dist
+          args: build
