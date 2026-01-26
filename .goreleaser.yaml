@@ -53,9 +53,9 @@ release:
   github:
     owner: ericsuh
     name: adapt
-  draft: false
+  draft: true
   prerelease: auto
-  mode: append
+  make_latest: true
   header: |
     ## Release {{.Version}}
 

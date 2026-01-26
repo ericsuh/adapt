@@ -40,9 +40,10 @@ git push origin v0.2.0
 Once the tag is pushed, GitHub Actions will automatically:
 1. Trigger the release workflow (`.github/workflows/release.yml`)
 2. Build binaries for all configured platforms (linux/amd64, linux/arm64)
-3. Create a GitHub release with the tag
-4. Upload the built artifacts to the release
+3. Create a draft GitHub release with the tag
+4. Upload the built artifacts to the draft release
 5. Generate and attach checksums
+6. Automatically publish the draft release
 
 ### 4. Verify the Release
 
@@ -79,12 +80,13 @@ If the release workflow fails:
 
 ### Need to Re-release
 
-If you need to add artifacts to an existing release (e.g., after fixing a build issue):
-1. The GoReleaser configuration uses `mode: append`, which allows adding artifacts to existing releases
-2. You can manually trigger the release workflow from GitHub Actions:
-   - Go to Actions → release workflow
-   - Click "Run workflow"
-   - Ensure the tag exists and workflow will append artifacts
+If you need to re-run a failed release:
+1. The GoReleaser configuration creates releases as **drafts** first, which are mutable and allow artifact uploads
+2. Delete the failed draft release from GitHub (if created)
+3. Re-run the workflow:
+   - Either push the tag again (after deleting it first)
+   - Or manually trigger the release workflow from GitHub Actions
+4. The workflow will create a new draft, upload artifacts, then automatically publish it
 
 ## Testing Releases
 
@@ -104,7 +106,9 @@ Before creating a production release, you can test the release process:
 
 ## Notes
 
-- The GoReleaser configuration (`.goreleaser.yaml`) uses `mode: append` to avoid conflicts with GitHub's immutable releases
+- The GoReleaser configuration (`.goreleaser.yaml`) creates releases as **drafts** first to avoid conflicts with GitHub's immutable release system
+- After all artifacts are uploaded to the draft, the GitHub Actions workflow automatically publishes it
 - Tags should always follow the format `vX.Y.Z` (with the `v` prefix)
 - The workflow requires the `GITHUB_TOKEN` which is automatically provided by GitHub Actions
 - Build metadata (version, commit, date) is automatically injected into the binary during the build process
+- Draft releases are mutable and can receive artifact uploads; published releases are immutable
