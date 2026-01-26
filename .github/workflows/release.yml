@@ -31,4 +31,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release edit "${{ github.ref_name }}" --draft=false
+          gh release edit "${{ github.ref_name }}" --draft=false --repo="${{ github.repository }}"
