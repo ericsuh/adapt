@@ -31,5 +31,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG_NAME=${GITHUB_REF#refs/tags/}
-          gh release edit "$TAG_NAME" --draft=false
+          gh release edit "${{ github.ref_name }}" --draft=false
