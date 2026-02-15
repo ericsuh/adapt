@@ -131,8 +131,8 @@ func processAptfile(path string, dryRun bool) {
 		log.Fatalf("Failed to install packages: %v", err)
 	}
 
-	// Execute clear-caches directives after packages are installed
-	for range clearCachesDirectives {
+	// Execute clear-caches once if any directives exist
+	if len(clearCachesDirectives) > 0 {
 		if err := clearCaches(dryRun); err != nil {
 			log.Fatalf("Failed to clear caches: %v", err)
 		}
@@ -432,8 +432,9 @@ func clearCaches(dryRun bool) error {
 	}
 
 	// Remove apt lists to reduce size further
+	// Use sh -c to ensure glob expansion works
 	fmt.Println("Removing apt package lists...")
-	rmCmd := exec.Command("rm", "-rf", "/var/lib/apt/lists/*")
+	rmCmd := exec.Command("sh", "-c", "rm -rf /var/lib/apt/lists/*")
 	rmCmd.Stdout = os.Stdout
 	rmCmd.Stderr = os.Stderr
 	if err := rmCmd.Run(); err != nil {
