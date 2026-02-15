@@ -84,6 +84,7 @@ func processAptfile(path string, dryRun bool) {
 	}
 
 	pkgs := make([]aptfile.PackageDirective, 0)
+	clearCachesDirectives := make([]aptfile.ClearCachesDirective, 0)
 
 	// First pass, skip package installation (except for .deb files,
 	// which can be necessary for setting up repos or keyrings, etc.)
@@ -118,9 +119,8 @@ func processAptfile(path string, dryRun bool) {
 				log.Fatalf("Failed to add hold: %v", err)
 			}
 		case aptfile.ClearCachesDirective:
-			if err := clearCaches(dryRun); err != nil {
-				log.Fatalf("Failed to clear caches: %v", err)
-			}
+			// Defer clear-caches to run after packages are installed
+			clearCachesDirectives = append(clearCachesDirectives, dir)
 		default:
 			log.Fatalf("Unknown directive: %v", d)
 		}
@@ -129,6 +129,13 @@ func processAptfile(path string, dryRun bool) {
 	err = installPackages(pkgs, dryRun)
 	if err != nil {
 		log.Fatalf("Failed to install packages: %v", err)
+	}
+
+	// Execute clear-caches directives after packages are installed
+	for range clearCachesDirectives {
+		if err := clearCaches(dryRun); err != nil {
+			log.Fatalf("Failed to clear caches: %v", err)
+		}
 	}
 }
 

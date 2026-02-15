@@ -36,5 +36,8 @@ hold "ffmpeg"
 
 # Use pins to control package source selection
 pin "*" 600, release: "l=NVIDIA CUDA"
+
+# Clear apt caches to reduce disk usage (useful for Docker images)
+clear-caches
 ```
 
