@@ -117,6 +117,10 @@ func processAptfile(path string, dryRun bool) {
 			if err := addHold(dir, dryRun); err != nil {
 				log.Fatalf("Failed to add hold: %v", err)
 			}
+		case aptfile.ClearCachesDirective:
+			if err := clearCaches(dryRun); err != nil {
+				log.Fatalf("Failed to clear caches: %v", err)
+			}
 		default:
 			log.Fatalf("Unknown directive: %v", d)
 		}
@@ -400,4 +404,35 @@ func addHold(hold aptfile.HoldDirective, dryRun bool) error {
 		fixCmd.Stderr = os.Stderr
 		return fixCmd.Run()
 	}
+}
+
+func clearCaches(dryRun bool) error {
+	if dryRun {
+		fmt.Println("[dry-run] Would run `apt-get clean`")
+		fmt.Println("[dry-run] Would remove /var/lib/apt/lists/*")
+		return nil
+	}
+
+	fmt.Println("Clearing apt caches...")
+
+	// Run apt-get clean to clear package cache
+	cleanCmd := exec.Command("apt-get", "clean")
+	cleanCmd.Env = append(os.Environ(), "DEBIAN_FRONTEND=noninteractive")
+	cleanCmd.Stdout = os.Stdout
+	cleanCmd.Stderr = os.Stderr
+	if err := cleanCmd.Run(); err != nil {
+		return fmt.Errorf("error running apt-get clean: %w", err)
+	}
+
+	// Remove apt lists to reduce size further
+	fmt.Println("Removing apt package lists...")
+	rmCmd := exec.Command("rm", "-rf", "/var/lib/apt/lists/*")
+	rmCmd.Stdout = os.Stdout
+	rmCmd.Stderr = os.Stderr
+	if err := rmCmd.Run(); err != nil {
+		return fmt.Errorf("error removing apt lists: %w", err)
+	}
+
+	fmt.Println("Cache clearing completed")
+	return nil
 }
