@@ -57,6 +57,9 @@ type HoldDirective struct {
 	PackageName string
 }
 
+type ClearCachesDirective struct {
+}
+
 var (
 	ErrNoDirective = errors.New("no directive found")
 	ErrParsing     = errors.New("error parsing aptfile")
@@ -158,6 +161,8 @@ func ParseLine(lineNum int, line string) (any, error) {
 		return parsePinDirective(cmd, args, opts)
 	case "hold":
 		return parseHoldDirective(cmd, args, opts)
+	case "clear-caches":
+		return parseClearCachesDirective(cmd, args, opts)
 	default:
 		return nil, fmt.Errorf(`unexpected directive "%s"`, cmd)
 	}
@@ -295,4 +300,15 @@ func parseHoldDirective(_ string, args []string, opts map[string]string) (HoldDi
 	return HoldDirective{
 		PackageName: args[0],
 	}, nil
+}
+
+// clear-caches directive is formatted like, `clear-caches`
+func parseClearCachesDirective(_ string, args []string, opts map[string]string) (ClearCachesDirective, error) {
+	if len(args) > 0 {
+		return ClearCachesDirective{}, fmt.Errorf("expected no arguments, got %v", args)
+	}
+	if len(opts) > 0 {
+		return ClearCachesDirective{}, fmt.Errorf("unexpected options %v", opts)
+	}
+	return ClearCachesDirective{}, nil
 }

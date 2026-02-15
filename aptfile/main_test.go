@@ -85,6 +85,11 @@ func TestParseLine(t *testing.T) {
 			expected: HoldDirective{PackageName: "curl"},
 		},
 		{
+			name:     "clear-caches directive",
+			line:     "clear-caches",
+			expected: ClearCachesDirective{},
+		},
+		{
 			name:    "invalid syntax",
 			line:    "package foo: bar",
 			wantErr: true,

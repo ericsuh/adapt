@@ -84,6 +84,7 @@ func processAptfile(path string, dryRun bool) {
 	}
 
 	pkgs := make([]aptfile.PackageDirective, 0)
+	clearCachesDirectives := make([]aptfile.ClearCachesDirective, 0)
 
 	// First pass, skip package installation (except for .deb files,
 	// which can be necessary for setting up repos or keyrings, etc.)
@@ -117,6 +118,9 @@ func processAptfile(path string, dryRun bool) {
 			if err := addHold(dir, dryRun); err != nil {
 				log.Fatalf("Failed to add hold: %v", err)
 			}
+		case aptfile.ClearCachesDirective:
+			// Defer clear-caches to run after packages are installed
+			clearCachesDirectives = append(clearCachesDirectives, dir)
 		default:
 			log.Fatalf("Unknown directive: %v", d)
 		}
@@ -125,6 +129,13 @@ func processAptfile(path string, dryRun bool) {
 	err = installPackages(pkgs, dryRun)
 	if err != nil {
 		log.Fatalf("Failed to install packages: %v", err)
+	}
+
+	// Execute clear-caches once if any directives exist
+	if len(clearCachesDirectives) > 0 {
+		if err := clearCaches(dryRun); err != nil {
+			log.Fatalf("Failed to clear caches: %v", err)
+		}
 	}
 }
 
@@ -400,4 +411,36 @@ func addHold(hold aptfile.HoldDirective, dryRun bool) error {
 		fixCmd.Stderr = os.Stderr
 		return fixCmd.Run()
 	}
+}
+
+func clearCaches(dryRun bool) error {
+	if dryRun {
+		fmt.Println("[dry-run] Would run `apt-get clean`")
+		fmt.Println("[dry-run] Would remove /var/lib/apt/lists/*")
+		return nil
+	}
+
+	fmt.Println("Clearing apt caches...")
+
+	// Run apt-get clean to clear package cache
+	cleanCmd := exec.Command("apt-get", "clean")
+	cleanCmd.Env = append(os.Environ(), "DEBIAN_FRONTEND=noninteractive")
+	cleanCmd.Stdout = os.Stdout
+	cleanCmd.Stderr = os.Stderr
+	if err := cleanCmd.Run(); err != nil {
+		return fmt.Errorf("error running apt-get clean: %w", err)
+	}
+
+	// Remove apt lists to reduce size further
+	// Use sh -c to ensure glob expansion works
+	fmt.Println("Removing apt package lists...")
+	rmCmd := exec.Command("sh", "-c", "rm -rf /var/lib/apt/lists/*")
+	rmCmd.Stdout = os.Stdout
+	rmCmd.Stderr = os.Stderr
+	if err := rmCmd.Run(); err != nil {
+		return fmt.Errorf("error removing apt lists: %w", err)
+	}
+
+	fmt.Println("Cache clearing completed")
+	return nil
 }
