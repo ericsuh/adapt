@@ -1,6 +1,6 @@
 [tools]
 go = "latest"
-golangci-lint = "2.5"
+golangci-lint = "2.15"
 
 [tasks.build]
 description = "Build the CLI"
@@ -29,6 +29,10 @@ run = [
 [tasks.lint]
 description = "Run linters"
 run = "golangci-lint run"
+
+[tasks.vulncheck]
+description = "Check for known vulnerabilities in dependencies and the Go toolchain"
+run = "go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./..."
 
 [tasks.clean]
 description = "Remove any generated files, data, and containers"
