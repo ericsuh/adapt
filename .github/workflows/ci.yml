@@ -40,4 +40,4 @@ jobs:
       - name: Run GoReleaser build
         uses: goreleaser/goreleaser-action@v6
         with:
-          args: build
+          args: build --snapshot
